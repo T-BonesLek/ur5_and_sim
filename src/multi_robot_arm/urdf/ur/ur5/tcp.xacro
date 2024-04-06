@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<!-- gripper.xacro -->
+<xacro:macro name="tcp" params="prefix">
+    <!-- Define the TCP link -->
+    <link name="${prefix}tcp">
+        <collision>
+            <geometry>
+                <mesh filename="package://ur5/collision/GripperAssy.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </collision>
+    </link>
+</xacro:macro>
+
+</robot>

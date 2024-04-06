@@ -1,0 +1,50 @@
+cmake_minimum_required(VERSION 3.5)
+project(pymoveit2)
+
+# Find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+
+# Install examples
+set(EXAMPLES_DIR examples)
+install(PROGRAMS
+    ${EXAMPLES_DIR}/ex_collision_mesh.py
+    ${EXAMPLES_DIR}/ex_collision_primitive.py
+    ${EXAMPLES_DIR}/ex_gripper.py
+    ${EXAMPLES_DIR}/ex_servo.py
+
+    DESTINATION lib/${PROJECT_NAME}
+)
+
+# Install textilePrograms
+set(textilePrograms_DIR textilePrograms)
+install(PROGRAMS
+    ${textilePrograms_DIR}/io_port_toggle.py
+    ${textilePrograms_DIR}/place_cotton.py
+    ${textilePrograms_DIR}/pick_goal.py
+    ${textilePrograms_DIR}/joint_goal.py
+    ${textilePrograms_DIR}/robotSubscriber.py
+    ${textilePrograms_DIR}/place_mix.py
+    ${textilePrograms_DIR}/place_wool.py
+    ${textilePrograms_DIR}/robotTestPublisher.py
+
+    DESTINATION lib/${PROJECT_NAME}
+)
+
+# Define message files
+set(msg_files
+  "msg/MaterialPose.msg"
+)
+
+# Generate message headers
+rosidl_generate_interfaces(${PROJECT_NAME}
+  ${msg_files}
+  DEPENDENCIES std_msgs
+)
+
+# Export dependencies
+ament_export_dependencies(rosidl_default_runtime)
+
+# Setup the project
+ament_package()
