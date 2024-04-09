@@ -1,3 +1,4 @@
+import sys
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String  # Import the String message type
@@ -11,20 +12,26 @@ import argparse
 import time
 from std_msgs.msg import Float32MultiArray
 from detect_to_pick_dealy import TimeCalculator
-from io_port_toggle import toggle_conveyor
+from io_port_toggle import TimeKeeper, toggle_conveyor
+import signal  # Import the signal module
 
 
 
 
 
 
-class MySubscriber(Node):
+class MySubscriber(Node):    
+
     def __init__(self, z):
         super().__init__('my_subscriber')
         self.z = z  # Specify the z value as 'True' or 'False. true for simulation and false for real robot'
+        toggle_conveyor(2, 100, simulation=self.z)  # Call toggle_conveyor with trigger = 1 to start the conveyor
+
         self.x_received = False
         self.y_received = False
         self.lock = threading.Lock()  # Create a new lock
+        # Initialize detected_objects as an empty list
+        self.detected_objects = []
 
         self.subscription_object = self.create_subscription(
             Float32MultiArray,  # Specify the message type
@@ -32,18 +39,29 @@ class MySubscriber(Node):
             self.listener_callback_object,  # Specify the callback
             0)  # Specify the queue size
         
-        # self.subscription_material = self.create_subscription(
-        #     Point,  # Specify the message type
-        #     '/my_robot_topic',  # Specify the topic
-        #     self.listener_callback_material,  # Specify the callback
-        #     0)  # Specify the queue size
 
     def listener_callback_object(self, msg):
             with self.lock:  # Acquire the lock before executing the rest of the method
-                
-                 #-----------remove this line if you are using the material topic----------------
+                self.x = msg.data[0:3]
                 self.y = msg.data[2]
-                print(f"Received y value: {self.y}")
+  
+
+                if len(msg.data) >= 4:  # Check if msg.data has at least four elements
+                    self.id = msg.data[3]
+                    self.pose = msg.data[0:2]
+
+                    # Add the detected object to the list
+                    self.detected_objects.append({
+                        'id': self.id,  # Assign id to the object
+                        'pose': self.pose,  # Save the object's pose
+                        'timestamp': TimeKeeper.get_total_time()  # Save the current timestamp
+                    })
+                    # Print the updated list of detected objects
+                    print("Object Queue:", self.detected_objects)
+
+                #-----------remove this line if you are using the material topic----------------
+                
+                # print(f"Received y value: {self.y}")
                 if self.y == 0.0 or self.y == 1.0 or self.y == 2.0:
                     self.y_received = True  
                 else:
@@ -56,7 +74,7 @@ class MySubscriber(Node):
                     if self.y_received:
                         self.load_program()
                         self.x_received = False
-                        self.y_received = False
+                        self.y_received = False                    
                 else:
                     self.x_received = False  # If the y value has not been received, do not accept the x value
 
@@ -74,10 +92,15 @@ class MySubscriber(Node):
         time_to_pick = time_calculator.calculate_time(pickPose)
         print(f"Time to pick: {time_to_pick} seconds")
         return time_to_pick
-    
+
+    def conveyor_control_master_of_time(self, trigger, driveTime):
+        toggle_conveyor(trigger, driveTime, simulation=self.z)
+        print("Total Time Conveyor has moved:", TimeKeeper.total_time)
+
+
     def load_program(self):
-        print(f"Received x value: {self.x}")
-        print(f"Received y value: {self.y}")
+        # print(f"Received x value: {self.x}")
+        # print(f"Received y value: {self.y}")
         
         if self.y_received and self.x_received:
             if self.y == 999.99:
@@ -91,10 +114,10 @@ class MySubscriber(Node):
                 
             # #-----------------Time calculation-----------------
             self.time_to_pick = self.calculate_pick_time(self.x)
+            self.conveyor_control_master_of_time(1, self.time_to_pick)
 
             if self.y == 0.0:
-                toggle_conveyor(1, self.time_to_pick, simulation=self.z)  # Call toggle_conveyor with trigger = 1 to start the conveyor
-                # time.sleep(time_to_pick) # Wait for the conveyor to move the object to the next position seconds
+                # toggle_conveyor(1, self.time_to_pick, simulation=self.z)  # Call toggle_conveyor with trigger = 1 to start the conveyor
                 if self.x[0] >= 0.1 and self.x[0] <= 0.37:
                     try:
                         # Start a new thread to run the move_to_pose function with the received x and y values
@@ -108,7 +131,7 @@ class MySubscriber(Node):
 
 
             if self.y == 1.0:
-                toggle_conveyor(1, self.time_to_pick, simulation=self.z)  # Call toggle_conveyor with trigger = 1 to start the conveyor
+                # toggle_conveyor(1, self.time_to_pick, simulation=self.z)  # Call toggle_conveyor with trigger = 1 to start the conveyor
                 if self.x[0] >= 0.1 and self.x[0] <= 0.37:
                     try:
                         # Start a new thread to run the move_to_pose function with the received x and y values
@@ -121,7 +144,7 @@ class MySubscriber(Node):
                     print(self.x[0:3])
 
             if self.y == 2.0:
-                toggle_conveyor(1, self.time_to_pick, simulation=self.z)  # Call toggle_conveyor with trigger = 1 to start the conveyor
+                # toggle_conveyor(1, self.time_to_pick, simulation=self.z)  # Call toggle_conveyor with trigger = 1 to start the conveyor
                 if self.x[0] >= 0.1 and self.x[0] <= 0.37:
                     try:
                         # Start a new thread to run the move_to_pose function with the received x and y values
@@ -170,7 +193,11 @@ class MySubscriber(Node):
         move_to_place_mix(False, sim)
         print("Place finished")
         MySubscriber(z)     # Re-subscribe to the topic
-
+        
+def signal_handler(sig, frame):
+    print("Ctrl+C pressed... stopping conveyor")
+    toggle_conveyor(0, 100, simulation=0)
+    sys.exit(0)
 
 def main(args=None):
     parser = argparse.ArgumentParser()
@@ -180,16 +207,17 @@ def main(args=None):
     z = args.z.lower() == 'true'  # Convert the argument to a boolean
 
     rclpy.init()  # Initialize the default context
+    node = None
     try:
+        signal.signal(signal.SIGINT, signal_handler)  # Set up the signal handler
         node = MySubscriber(z)
         rclpy.spin(node)  # Spin the node so it can process callbacks
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
-        if rclpy.ok():  # Check if the context is still valid
-            node.destroy_node()
-            rclpy.shutdown()  # Shutdown the default context
-
+        node.destroy_node()
+        rclpy.shutdown()
+        
 
 if __name__ == '__main__':
     main()

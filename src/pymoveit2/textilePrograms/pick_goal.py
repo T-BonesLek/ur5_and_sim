@@ -45,7 +45,7 @@ def move_to_pose(pickPose, standalone, sim):
         trans = Transformations()
         # Convert camera coordinates to robot coordinates
         robot_coords = trans.camera_to_robot(pickPose)
-        print(f"Robot coordinates: {robot_coords}")
+        # print(f"Robot coordinates: {robot_coords}")
 
         # Declare parameters for position and orientation
         node.declare_parameter("position1", [tcp_x -0.5, tcp_y + 0.0, tcp_z - 0.02])

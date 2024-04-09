@@ -3,6 +3,29 @@ from rclpy.node import Node
 from ur_msgs.srv import SetIO
 import time
 
+
+class TimeKeeper:
+    start_time = None
+    total_time = 0.0
+
+    @classmethod
+    def start(cls):
+        if cls.start_time is None:
+            cls.start_time = time.time()
+
+    @classmethod
+    def stop(cls):
+        if cls.start_time is not None:
+            cls.total_time += time.time() - cls.start_time
+            cls.start_time = None
+
+    @classmethod
+    def get_total_time(cls):
+        if cls.start_time is None:
+            return cls.total_time
+        else:
+            return cls.total_time + time.time() - cls.start_time
+
 class IOToggleClient(Node):
     def __init__(self):
         super().__init__('io_toggle_client')
@@ -10,6 +33,7 @@ class IOToggleClient(Node):
         while not self.client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('service not available, waiting again...')
         self.req = SetIO.Request()
+        
 
     def send_request(self, pin_state_pairs):
         for pin, state in pin_state_pairs:
@@ -44,27 +68,33 @@ def toggle_gripper(trigger, simulation):
 
 def toggle_conveyor(trigger, driveTime, simulation):
     if driveTime == None:
-        print("Drive time should be greater than 0")
-        io_toggle_client.send_request([(4, 0.0), (5, 0.0)]) #Turn off conveyor
-        return
-    
-    if simulation == 1.0:
-        print("Simulation mode is on. The conveyor will not move.")
         return
 
+    if simulation == 1.0:
+        print("Simulation mode is on. The conveyor will not move.")
+        time.sleep(driveTime)
+        return
 
     io_toggle_client = IOToggleClient()
     if trigger == 0:
-        io_toggle_client.send_request([(4, 0.0), (5, 0.0)]) #Turn off conveyor
+        TimeKeeper.stop()
+        io_toggle_client.send_request([(4, 0.0), (5, 0.0)])
 
     elif trigger == 1:
-        io_toggle_client.send_request([(4, 1.0), (5, 1.0)]) #Turn on conveyor
-        print(f"Conveyor is on for {driveTime} seconds")
-        time.sleep(driveTime) #Keep conveyor on for driveTime seconds
-        io_toggle_client.send_request([(4, 0.0), (5, 0.0)]) #Turn off conveyor
-        
+        TimeKeeper.start()
+        io_toggle_client.send_request([(4, 1.0), (5, 1.0)])
+        time.sleep(driveTime)
+        io_toggle_client.send_request([(4, 0.0), (5, 0.0)])  # Stop the conveyor after the sleep
+        TimeKeeper.stop()
+
+    elif trigger == 2:
+        TimeKeeper.start()
+        io_toggle_client.send_request([(4, 1.0), (5, 1.0)])
+
     io_toggle_client.destroy_node()
 
+    
 if __name__ == '__main__':
     toggle_gripper(1, simulation=True)  # Call toggle_gripper with trigger = 1 to open the gripper
-    toggle_conveyor(1, 5, simulation= 1.0)  # Call toggle_conveyor with trigger = 1 to turn on the conveyor for 5 seconds
+    toggle_conveyor(trigger=1, driveTime=5, simulation= 1.0)  # Call toggle_conveyor with trigger = 1 to turn on the conveyor for 5 seconds
+    print(TimeKeeper.total_time)  # Print total_time
