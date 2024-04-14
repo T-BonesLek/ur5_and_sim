@@ -48,7 +48,7 @@ def move_to_place_wool(standalone, sim):
         node.declare_parameter("position1", [tcp_x + 0.3,  tcp_y + 0.45, tcp_z + 0.2])
         node.declare_parameter("position2", [tcp_x + 0.7, tcp_y - 0.4, tcp_z - 0.1])
         node.declare_parameter("position3", [tcp_x + 0.7, tcp_y - 0.4, tcp_z - 0.2])
-        node.declare_parameter("PickPosition", [tcp_x -0.5, tcp_y + 0.0, tcp_z - 0.02])
+        node.declare_parameter("PickPosition", [tcp_x -0.5, tcp_y + 0.0, tcp_z + 0.1])
 
         # Declare parameters for Euler angles (roll, pitch, yaw)
         node.declare_parameter("euler_xyz1", [math.radians(0), math.radians(0), math.radians(0)])  # roll, pitch, yaw for position1
@@ -225,4 +225,4 @@ def add_ground_plane(node):
 
 
 if __name__ == "__main__":
-    move_to_place_cotton(standalone=True, sim=False)
+    move_to_place_wool(standalone=True, sim=True)

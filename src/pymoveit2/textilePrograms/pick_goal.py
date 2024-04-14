@@ -22,7 +22,7 @@ from moveit_msgs.msg import PlanningScene
 from shape_msgs.msg import Plane
 from transforms import Transformations
 
-def move_to_pose(pickPose, standalone, sim):
+def move_to_pose(pickPose_xy, standalone, sim):
         # TCP offsets
         Transforms = Transformations()
         tcp_x = Transforms.tcp_offset_x
@@ -44,38 +44,44 @@ def move_to_pose(pickPose, standalone, sim):
         # Create Transformations object
         trans = Transformations()
         # Convert camera coordinates to robot coordinates
-        robot_coords = trans.camera_to_robot(pickPose)
+        robot_coords = trans.camera_to_robot(pickPose_xy)
         # print(f"Robot coordinates: {robot_coords}")
 
         # Declare parameters for position and orientation
-        node.declare_parameter("position1", [tcp_x -0.5, tcp_y + 0.0, tcp_z - 0.02])
+        node.declare_parameter("position1", [tcp_x -0.5, tcp_y + 0.0, tcp_z + 0.1])
         node.declare_parameter("position2", robot_coords)
         robot_coords_push = [robot_coords[0], robot_coords[1] + 0.3, robot_coords[2]]
         node.declare_parameter("position3", robot_coords_push)
+        node.declare_parameter("position4", [robot_coords[0], robot_coords[1] + 0.3, robot_coords[2] + 0.3])
 
         # Declare parameters for Euler angles (roll, pitch, yaw)
         node.declare_parameter("euler_xyz1", [math.radians(0), math.radians(0), math.radians(0)])  # roll, pitch, yaw for position1
         node.declare_parameter("euler_xyz2", [math.radians(0), math.radians(0), math.radians(0)])  # roll, pitch, yaw for position2
         node.declare_parameter("euler_xyz3", [math.radians(0), math.radians(0), math.radians(0)])  # roll, pitch, yaw for position3
+        node.declare_parameter("euler_xyz4", [math.radians(0), math.radians(0), math.radians(0)])  # roll, pitch, yaw for position4
 
         # Get parameters
         euler_xyz1 = node.get_parameter("euler_xyz1").get_parameter_value().double_array_value
         euler_xyz2 = node.get_parameter("euler_xyz2").get_parameter_value().double_array_value
         euler_xyz3 = node.get_parameter("euler_xyz3").get_parameter_value().double_array_value
+        euler_xyz4 = node.get_parameter("euler_xyz4").get_parameter_value().double_array_value
 
         # Convert Euler angles to quaternion
         node.declare_parameter("quat_xyzw1", [0.0, 1.0, 0.0, 0.0])  # default value is a unit quaternion
         node.declare_parameter("quat_xyzw2", [0.0, 1.0, 0.0, 0.0])  # default value is a unit quaternion
         node.declare_parameter("quat_xyzw3", [0.0, 1.0, 0.0, 0.0])  # default value is a unit quaternion
+        node.declare_parameter("quat_xyzw4", [0.0, 1.0, 0.0, 0.0])  # default value is a unit quaternion
 
         quat_xyzw1 = Quaternion(axis=[1, 0, 0], angle=euler_xyz1[0]) * Quaternion(axis=[0, 1, 0], angle=euler_xyz1[1]) * Quaternion(axis=[0, 0, 1], angle=euler_xyz1[2])
         quat_xyzw2 = Quaternion(axis=[1, 0, 0], angle=euler_xyz2[0]) * Quaternion(axis=[0, 1, 0], angle=euler_xyz2[1]) * Quaternion(axis=[0, 0, 1], angle=euler_xyz2[2])
         quat_xyzw3 = Quaternion(axis=[1, 0, 0], angle=euler_xyz3[0]) * Quaternion(axis=[0, 1, 0], angle=euler_xyz3[1]) * Quaternion(axis=[0, 0, 1], angle=euler_xyz3[2])
+        quat_xyzw4 = Quaternion(axis=[1, 0, 0], angle=euler_xyz4[0]) * Quaternion(axis=[0, 1, 0], angle=euler_xyz4[1]) * Quaternion(axis=[0, 0, 1], angle=euler_xyz4[2])
         
         # Update the parameters in the node
         node.set_parameters([rclpy.parameter.Parameter("quat_xyzw1", rclpy.parameter.Parameter.Type.DOUBLE_ARRAY, list(quat_xyzw1.elements))])
         node.set_parameters([rclpy.parameter.Parameter("quat_xyzw2", rclpy.parameter.Parameter.Type.DOUBLE_ARRAY, list(quat_xyzw2.elements))])
         node.set_parameters([rclpy.parameter.Parameter("quat_xyzw3", rclpy.parameter.Parameter.Type.DOUBLE_ARRAY, list(quat_xyzw3.elements))])
+        node.set_parameters([rclpy.parameter.Parameter("quat_xyzw4", rclpy.parameter.Parameter.Type.DOUBLE_ARRAY, list(quat_xyzw4.elements))])
         
 
 
@@ -121,10 +127,13 @@ def move_to_pose(pickPose, standalone, sim):
         position1 = node.get_parameter("position1").get_parameter_value().double_array_value
         position2 = node.get_parameter("position2").get_parameter_value().double_array_value
         position3 = node.get_parameter("position3").get_parameter_value().double_array_value
+        position4 = node.get_parameter("position4").get_parameter_value().double_array_value
         quat_xyzw1 = node.get_parameter("quat_xyzw1").get_parameter_value().double_array_value
         quat_xyzw2 = node.get_parameter("quat_xyzw2").get_parameter_value().double_array_value
         quat_xyzw3 = node.get_parameter("quat_xyzw3").get_parameter_value().double_array_value
+        quat_xyzw4 = node.get_parameter("quat_xyzw4").get_parameter_value().double_array_value
         cartesian = node.get_parameter("cartesian").get_parameter_value().bool_value
+    
 
 
         # Move to pose
@@ -144,6 +153,10 @@ def move_to_pose(pickPose, standalone, sim):
             f"Moving to {{position: {list(position1)}, quat_xyzw: {list(quat_xyzw1)}}}"
         )
 
+        node.get_logger().info(
+            f"Moving to {{position: {list(position4)}, quat_xyzw: {list(quat_xyzw4)}}}"
+        )   
+
         try:
             add_ground_plane(node)
 
@@ -162,8 +175,9 @@ def move_to_pose(pickPose, standalone, sim):
 
             # Close the gripper after reaching the first position
             toggle_gripper(0, simulation=sim)  # Call toggle_gripper with trigger = 0 to close the gripper
-            # moveit2.move_to_pose(position=position3, quat_xyzw=quat_xyzw1, cartesian=cartesian)
-            # moveit2.wait_until_executed()
+    
+            moveit2.move_to_pose(position=position4, quat_xyzw=quat_xyzw4, cartesian=cartesian)
+            moveit2.wait_until_executed()
 
         except Exception as e:
             print(f"An error occurred: {e}")
@@ -205,4 +219,4 @@ def add_ground_plane(node):
 
 
 if __name__ == "__main__":
-    move_to_pose(-0.4, standalone=True, sim=True)  # Call move_to_pose with pickPose = -0.4 to -0.6 is the -x value of the pickPose
+    move_to_pose([0.2, 0.17], standalone=True, sim=True)
