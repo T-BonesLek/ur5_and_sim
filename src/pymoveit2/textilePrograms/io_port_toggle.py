@@ -78,8 +78,7 @@ def toggle_conveyor(trigger, simulation):
         TimeKeeper.stop()
         if simulation:
             print("Simulation mode is on. The conveyor will not move.")
-            TimeKeeper.start()
-            TimeKeeper.stop()
+            # TimeKeeper.stop()
         else:
             io_toggle_client.send_request([(4, 0.0), (5, 0.0)])
             print(f"Total time: {TimeKeeper.get_total_time()} seconds")
@@ -89,8 +88,7 @@ def toggle_conveyor(trigger, simulation):
             print("What I seee", simulation)
             if simulation:
                 print("Simulation mode is on. The conveyor will not move.")
-                TimeKeeper.start()
-                TimeKeeper.stop()
+                # TimeKeeper.start()
             else:
                 io_toggle_client.send_request([(4, 1.0), (5, 1.0)])
 

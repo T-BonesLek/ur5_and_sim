@@ -49,8 +49,8 @@ Simulation / realRobot:
     source /opt/ros/humble/setup.bash 
     source install/setup.bash
     cd src/pymoveit2/textilePrograms
-    python3 main.py True #For simulation
-    python3 main.py False #For realRobot
+    python3 main.py --is_sim True simulation
+    python3 main.py --is_sim False #For realRobot
 
     terminal3:(testPub)
     cd github/ur5_and_sim
@@ -60,11 +60,13 @@ Simulation / realRobot:
     python3 testPub.py
 
     terminal4:(objectDetection)
+    cd
     cd github/objectDetectionTextile/src/yoloV8
     source /opt/ros/humble/setup.bash 
     python3 objectDetectioTextile.py 
 
     terminal5:(realsense2_camera)
+    cd
     cd github/objectDetectionTextile
     source /opt/ros/humble/setup.bash 
     ros2 launch realsense2_camera rs_launch.py camera_namespace:=textilePose camera_name:=D455

@@ -14,7 +14,12 @@ from std_msgs.msg import Float32MultiArray
 from detect_to_pick_dealy import TimeCalculator
 from io_port_toggle import TimeKeeper, toggle_conveyor
 import signal
-import random 
+import random
+
+import logging
+
+# Set the logging level to ERROR
+logging.basicConfig(level=logging.ERROR)
 
 
 class MySubscriber(Node):    
