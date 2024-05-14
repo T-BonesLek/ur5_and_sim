@@ -193,7 +193,7 @@
         <box size="0.3 0.3 0.5"/>
       </geometry>
       <material name="box_material">
-        <color rgba="0 0 255 1"/>
+        <color rgba="0 200 255 1"/>
       </material>
     </visual>
     <collision>
@@ -222,7 +222,7 @@
         <box size="0.3 0.3 0.5"/>
       </geometry>
       <material name="box_material">
-        <color rgba="255 0 0 1"/>
+        <color rgba="255 200 0 1"/>
       </material>
     </visual>
     <collision>
@@ -251,7 +251,7 @@
         <box size="0.3 0.3 0.5"/>
       </geometry>
       <material name="box_material">
-        <color rgba="0 255 0 1"/>
+        <color rbga="0.2 0.2 0.5"/>
       </material>
     </visual>
     <collision>

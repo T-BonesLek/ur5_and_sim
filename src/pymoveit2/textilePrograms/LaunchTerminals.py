@@ -13,16 +13,19 @@ def run_in_terminal(cmds, terminal='gnome-terminal', title=None):
 
 # Define the commands for each terminal
 terminal_moveit = [
+    'cd',
     'source /opt/ros/humble/setup.bash',
-    'ros2 launch ur_moveit_config ur_moveit.launch.py ur_type:=ur5 launch_rviz:=false use_mock_hardware:=false',
+    'ros2 launch ur_moveit_config ur_moveit.launch.py ur_type:=ur5 launch_rviz:=true use_mock_hardware:=false',
 ]
 
 terminal_robot = [
+    'cd',
     'source /opt/ros/humble/setup.bash',
     'ros2 launch ur_robot_driver ur_control.launch.py ur_type:=ur5 robot_ip:=192.168.0.102 use_mock_hardware:=true launch_rviz:=false initial_joint_controller:=joint_trajectory_controller',
 ]
 
 terminal_gazebo_sim = [
+    'cd',
     'cd github/ur5_and_sim',
     'source /opt/ros/humble/setup.bash',
     'source install/setup.bash',
@@ -30,34 +33,47 @@ terminal_gazebo_sim = [
 ]
 
 terminal_realsense = [
+    'cd',
     'cd github/objectDetectionTextile',
     'source /opt/ros/humble/setup.bash',
     'ros2 launch realsense2_camera rs_launch.py camera_namespace:=textilePose camera_name:=D455', 
 ]
 
 terminal_objectDetection = [
+    'cd',
     'cd github/objectDetectionTextile/src/yoloV8',
     'source /opt/ros/humble/setup.bash', 
     'python3 objectDetectioTextile.py', 
 ]
 
 terminal_main =[
+    'cd',
     'cd github/ur5_and_sim',
     'source /opt/ros/humble/setup.bash', 
     'source install/setup.bash',
     'cd src/pymoveit2/textilePrograms',
-    # 'python3 main.py --is_sim True simulation',
-    'python3 main.py --is_sim False #For realRobot',
+    'python3 main.py --is_sim True', #For simulation
+    # 'python3 main.py --is_sim False', # For realRobot
+]
+
+terminal_topic = [
+    'cd',
+    'source /opt/ros/humble/setup.bash',
+    'ros2 topic echo /object_pose_topic',
 ]
 
 # Run the commands in new terminals
-# run_in_terminal(terminal_moveit, title='MoveIt Terminal')
-run_in_terminal(terminal_robot, title='Robot Terminal')
-sleep(5)
 run_in_terminal(terminal_gazebo_sim, title='Gazebo Terminal')
 sleep(5)
+run_in_terminal(terminal_moveit, title='MoveIt Terminal')
+sleep(5)
+run_in_terminal(terminal_robot, title='Robot Terminal')
+sleep(2)
+print("press play on pendant!!")
+sleep(10)
 run_in_terminal(terminal_realsense, title='Realsense Terminal')
 sleep(5)
 run_in_terminal(terminal_objectDetection, title='Object Detection Terminal')
 sleep(5)
 run_in_terminal(terminal_main, title='Main Terminal')
+run_in_terminal(terminal_topic, title='Object Detection topic echo Terminal')

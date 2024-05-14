@@ -33,9 +33,12 @@ class MySubscriber(Node):
     def __init__(self, is_sim):
         super().__init__('my_subscriber')
         self.is_sim = is_sim  # Specify the is_sim value as 'True' or 'False. true for simulation and false for real robot'
+
+        if self.is_sim:
+            print("---- Simulation mode is on. The conveyor will not move.")
+        else:
+            print("#For realRobot  #For realRobot#For realRobot Simulation mode is off. The conveyor will move.")
         
-        # self.object_pose_received = False
-        # self.textile_color_received = False
         self.lock = threading.Lock()  # Create a new lock
 
         self.robot1_ready = threading.Event()
@@ -43,13 +46,7 @@ class MySubscriber(Node):
         
         # last robot is robot1
         self.last_robot_is_ready = self.robot1_ready
-        
 
-        # self.robot_placing = threading.Event()
-        # self.robot_ready = threading.Event()
-        # self.conveyor_running = threading.Event()
-        # self.robot_ready.set()  # Robot is initially ready
-        # Initialize detected_objects as an empty list
         self.detected_objects = []
 
         self.subscription_object = self.create_subscription(
@@ -89,38 +86,13 @@ class MySubscriber(Node):
                 self.detected_objects.append({
                     'id': self.object_id,  # Assign id to the object
                     'pose': self.object_pose,  # Save the object's pose
-                    'timestamp': self.time_to_pick, # Save the timestamp it should be picked
+                    'timestamp': (self.time_to_pick), # Save the timestamp it should be picked
                     'color': self.textile_color,
                     'material': "todo if spectral camera is used"
                 })
                 # Print the updated list of detected objects
                 print("Object Queue:", self.detected_objects)
 
-                # if self.textile_color == 0.0 or self.textile_color == 1.0 or self.textile_color == 2.0:
-                #     self.textile_color_received = True  
-                # else:
-                #     self.textile_color_received = False 
-
-                # if self.textile_color_received:  # Only accept the x value if the y value has been received
-                #     self.object_pose_received = True
-                #     if self.textile_color_received:
-                #         self.load_program()
-                #         self.object_pose_received = False
-                #         self.textile_color_received = False                    
-                # else:
-                #     self.object_pose_received = False  # If the y value has not been received, do not accept the x value
-
-        # if self.robot_ready.is_set():
-        #     threading.Thread(target=self.load_program).start()
-
-    # def listener_callback_material(self, msg):
-    #     self.textile_color = msg.y
-    #     self.textile_color_received = True
-    #     if self.object_pose_received:
-    #         with self.lock:  # Acquire the lock before executing the rest of the method
-    #             self.load_program()
-    #         self.object_pose_received = False  # Reset both flags after calling load_program
-    #         self.textile_color_received = False
                     
     def calculate_pick_time(self, pickPose):
         time_calculator = TimeCalculator()
@@ -130,18 +102,11 @@ class MySubscriber(Node):
         print(f"Adjusted time to pick: {self.adjusted_time_to_pick} seconds")
         return self.adjusted_time_to_pick
 
-    # def conveyor_control_master_of_time(self, trigger, driveTime):
-    #     toggle_conveyor(trigger, driveTime, simulation=self.is_sim)
-    #     print("Total Time Conveyor has moved:", TimeKeeper.total_time)
-
     def start_conveyor(self):
-        # self.conveyor_control_master_of_time(1, self.adjusted_time_to_pick)
         toggle_conveyor(1, simulation=self.is_sim)
-        # self.conveyor_running = True
 
     def stop_conveyor(self):
         toggle_conveyor(0, simulation=self.is_sim)
-        # self.conveyor_running = False
 
     def conveyor_master_of_pickup_point_logic(self):
         self.start_conveyor()
@@ -165,36 +130,12 @@ class MySubscriber(Node):
                 # conv is running AND we have objects to pick
                 top_object = self.detected_objects[0]
                 time_to_pick = top_object['timestamp']
-                
+            
                 if time_to_pick < TimeKeeper.get_total_time():
                     self.stop_conveyor()
                     print("Conveyor stopped. Waiting for robot to be ready...")
                     self.last_robot_is_ready.wait()                    
 
-
-
-
-
-
-
-
-
-
-
-            # if not self.robot1_ready.is_set() and len(self.detected_objects) > 0:
-
-            #     top_object = self.detected_objects[0]
-            #     time_to_pick = top_object['timestamp']
-
-            #     print(f"Total time: {TimeKeeper.get_total_time()} seconds")
-            #     print(f"Time to pick: {time_to_pick} seconds")
-
-            #     if time_to_pick < TimeKeeper.get_total_time():
-            #         self.stop_conveyor()
-            #         print("Conveyor stopped. Waiting for robot to be ready...")
-            #         self.robot1_ready.wait()
-
-  
 
     def robot_logic(self):
         
@@ -243,7 +184,7 @@ class MySubscriber(Node):
             
             self.pause_conveyer_for_pickup.clear()                
 
-            print("############################### pause_conveyer_for_pickup: ", self.pause_conveyer_for_pickup.is_set())
+            print("pause_conveyer_for_pickup: ", self.pause_conveyer_for_pickup.is_set())
 
 
             place_action = robot_color_to_action[top_object['color']]
@@ -256,137 +197,6 @@ class MySubscriber(Node):
                 print("All objects processed")
                 
             self.robot1_ready.set() # Set the robot1_ready event to indicate that the robot is ready
-                        
-                    
-                
-
-
-
-
-
-
-                
-
-
-                    
-                
-
-
-
-
-    #         # print(f"Received x value: {self.object_pose}")
-    #         # print(f"Received y value: {self.textile_color}")
-            
-    #         if self.textile_color_received and self.object_pose_received:
-    #             self.robot_ready.clear()
-    #             self.robot_picking.set()
-            
-    #             if self.textile_color == 999.99:
-    #                 print("No objecrt detected")
-                
-    #             self.conveyor_control_master_of_time(1, self.adjusted_time_to_pick)
-
-    #             # Sort the detected_objects list by timestamp
-    #             self.detected_objects.sort(key=lambda obj: obj['timestamp'])
-
-    #             # Get the object with the earliest timestamp
-    #             if self.detected_objects:
-    #                 earliest_object = self.detected_objects.pop(0)
-    #                 self.pose = earliest_object['pose']
-    #                 self.id = earliest_object['id']
-            
-
-    #             if self.textile_color == 0.0:
-    #                 # toggle_conveyor(1, self.time_to_pick, simulation=self.z)  # Call toggle_conveyor with trigger = 1 to start the conveyor
-    #                 if self.object_pose[0] >= 0.1 and self.object_pose[0] <= 0.37:
-    #                     try:
-    #                         # Start a new thread to run the pick and place operation
-    #                         threading.Thread(target=self.run_pick_cotton, args=(self.pose, self.is_sim)).start()
-    #                     except Exception as e:
-    #                         print(f"An error occurred: {e}")
-    #                 else:
-    #                     print("Invalid x value")
-    #                     print(self.pose)
-
-
-    #             if self.textile_color == 1.0:
-    #                 # toggle_conveyor(1, self.time_to_pick, simulation=self.z)  # Call toggle_conveyor with trigger = 1 to start the conveyor
-    #                 if self.object_pose[0] >= 0.1 and self.object_pose[0] <= 0.37:
-    #                     try:
-    #                         threading.Thread(target=self.run_pick_wool, args=(self.pose, self.is_sim)).start()
-    #                     except Exception as e:
-    #                         print(f"An error occurred: {e}")
-    #                 else:
-    #                     print("Invalid x value")
-    #                     print(self.pose)
-
-    #             if self.textile_color == 2.0:
-    #                 # toggle_conveyor(1, self.time_to_pick, simulation=self.z)  # Call toggle_conveyor with trigger = 1 to start the conveyor
-    #                 if self.object_pose[0] >= 0.1 and self.object_pose[0] <= 0.37:
-    #                     try:
-    #                         threading.Thread(target=self.run_pick_mix, args=(self.pose, self.is_sim)).start()
-    #                     except Exception as e:
-    #                         print(f"An error occurred: {e}")    
-    #                 else:
-    #                     print("Invalid x value")
-    #                     print(self.pose)
-                        
-    #                 # Reset the flags after using the x and y values
-    #         self.object_pose_received = False
-    #         self.textile_color_received = False
-
-    # def run_pick_cotton(self ,pickPose_xy, z):
-    #     # Clear the robot_ready event because the robot is starting to pick
-    #     self.robot_ready.clear()
-
-    #     if z == 1.0:
-    #         sim = True
-    #     else:
-    #         sim = False
-    #     move_to_pose(pickPose_xy, False, sim)
-    #     print("Pick finished")
-    #     self.robot_picking.clear()
-    #     self.robot_placing.set()
-    #     threading.Thread(target=self.start_conveyor).start()
-    #     move_to_place_cotton(False, sim)
-    #     print("Place finished")
-    #     self.robot_placing.clear()
-    #     self.robot_ready.set()
-    #     # MySubscriber(z)     # Re-subscribe to the topic
-        
-    # def run_pick_wool(self ,pickPose_xy, z):
-    #     self.robot_ready.clear()
-    #     if z == 1.0:
-    #         sim = True
-    #     else:
-    #         sim = False
-    #     move_to_pose(pickPose_xy, False, sim)
-    #     print("Pick finished")
-    #     self.robot_picking.clear()
-    #     self.robot_placing.set()
-    #     threading.Thread(target=self.start_conveyor).start()
-    #     move_to_place_wool(False, sim)
-    #     print("Place finished")
-    #     self.robot_placing.clear()
-    #     self.robot_ready.set()
-    #     # MySubscriber(z)     # Re-subscribe to the topic
-
-    # def run_pick_mix(self ,pickPose_xy, z):
-    #     self.robot_ready.clear()
-    #     if z == 1.0:
-    #         sim = True
-    #     else:
-    #         sim = False
-    #     move_to_pose(pickPose_xy, False, sim)
-    #     print("Pick finished")
-    #     self.robot_picking.clear()
-    #     self.robot_placing.set()
-    #     threading.Thread(target=self.start_conveyor).start()
-    #     move_to_place_mix(False, sim)
-    #     print("Place finished")
-    #     self.robot_placing.clear()
-    #     self.robot_ready.set()
-    #     # MySubscriber(z)     # Re-subscribe to the topic
 
 
 def str2bool(v):
@@ -409,7 +219,6 @@ def main(args=None):
     logger = logging.getLogger()
     logger.setLevel(logging.WARNING)
     logger.disabled = True
-
 
 
 
