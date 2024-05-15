@@ -22,15 +22,12 @@ from moveit_msgs.msg import PlanningScene
 from shape_msgs.msg import Plane
 from transforms import Transformations
 
-def move_to_pose(pickPose_xy, standalone, sim):
+def move_to_pose(pickPose_xy, sim):
         # TCP offsets
         Transforms = Transformations()
         tcp_x = Transforms.tcp_offset_x
         tcp_y = Transforms.tcp_offset_y
         tcp_z = Transforms.tcp_offset_z
-
-        if standalone and sim is False:
-            rclpy.init()
     
         # Create node
         if sim:
@@ -182,11 +179,8 @@ def move_to_pose(pickPose_xy, standalone, sim):
         except Exception as e:
             print(f"An error occurred: {e}")
         finally:
-            if standalone:
-                rclpy.shutdown()
-                print("Stand alone")
-                # executor_thread.join()
-
+            pass
+           
         node.get_logger().info(f'Movement completed')
 
 
@@ -219,4 +213,6 @@ def add_ground_plane(node):
 
 
 if __name__ == "__main__":
-    move_to_pose([0.2, 0.17], standalone=True, sim=False)
+    rclpy.init()
+    move_to_pose([0.2, 0.17], sim=False)
+    rclpy.shutdown()

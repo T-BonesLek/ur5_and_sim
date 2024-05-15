@@ -18,9 +18,17 @@ import random
 
 import logging
 
+
+
+
 # Set the logging level to ERROR
 logging.basicConfig(level=logging.ERROR)
 
+
+def report_time_thread():
+    while True:
+        time.sleep(1)
+        print(f"### report_time_thread:: Time elapsed: {TimeKeeper.get_total_time()} seconds")
 
 class MySubscriber(Node):    
     
@@ -63,6 +71,9 @@ class MySubscriber(Node):
 
         self.conveyor_pickup_logic_thread = threading.Thread(target=self.conveyor_master_of_pickup_point_logic) 
         self.conveyor_pickup_logic_thread.start() 
+
+        self.report_time_thread = threading.Thread(target=report_time_thread)
+        self.report_time_thread.start()
 
     def signal_handler(self, sig, frame):
         print("Ctrl+C pressed... stopping conveyor")
@@ -154,7 +165,6 @@ class MySubscriber(Node):
                     return  # Exit the thread if should_exit is True
 
                 if not self.detected_objects:
-                    print("No objects detected")
                     continue
 
                 top_object = self.detected_objects[0]  # Get the top object in the queue
@@ -172,6 +182,8 @@ class MySubscriber(Node):
                     print(f"Time to pick: {time_to_pick} seconds")
                     continue
 
+                print("Robot is ready to pick object", top_object['id'], " at time", time_to_pick, "current time", TimeKeeper.get_total_time())
+
                 # Remove the picked object from the list
                 self.detected_objects.pop(0)
         
@@ -179,7 +191,7 @@ class MySubscriber(Node):
             self.robot1_ready.clear()                
             self.pause_conveyer_for_pickup.set()                                
             
-            move_to_pose(top_object["pose"], False, self.is_sim)
+            move_to_pose(top_object["pose"], self.is_sim)
             print(f"Pick finished for object {top_object['id']} conveyer can start again")
             
             self.pause_conveyer_for_pickup.clear()                
@@ -227,6 +239,7 @@ def main(args=None):
     try:
         node = MySubscriber(args.is_sim)
         signal.signal(signal.SIGINT, node.signal_handler)  # Register the signal handler
+
         while rclpy.ok():
             if node.should_exit:
                 print("Exiting program...")
@@ -237,6 +250,7 @@ def main(args=None):
     finally:
         if node:
             node.destroy_node()
+
         rclpy.shutdown()
 
 if __name__ == '__main__':

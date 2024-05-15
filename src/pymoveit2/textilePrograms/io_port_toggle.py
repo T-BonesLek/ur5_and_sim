@@ -2,29 +2,55 @@ import rclpy
 from rclpy.node import Node
 from ur_msgs.srv import SetIO
 import time
-
+import threading
 
 class TimeKeeper:
     start_time = None
     total_time = 0.0
+    lock = threading.Lock()
+    is_running = False
+
+    start_count = 0
+    stop_count = 0
 
     @classmethod
-    def start(cls):
-        if cls.start_time is None:
-            cls.start_time = time.time()
+    def start(cls):        
+        with cls.lock:            
+            if cls.is_running:
+                return
+            
+            cls.start_count += 1
+            
+            cls.is_running = True
+            if cls.start_time is None:
+                cls.start_time = time.time()                
+                print("TimeKeeper::Start              time", cls.start_time, " start_count: ", cls.start_count)
 
     @classmethod
     def stop(cls):
-        if cls.start_time is not None:
-            cls.total_time += time.time() - cls.start_time 
-            cls.start_time = None
+        with cls.lock:
+            if cls.is_running is False:
+                return
+            
+            cls.stop_count += 1
+            cls.is_running = False
+
+            if cls.start_time is None:
+                raise RuntimeError("TimeKeeper::stop called without calling start")
+            
+            else:
+                cls.total_time += time.time() - cls.start_time
+                cls.start_time = None
+                print("TimeKeeper::Stop                time", cls.total_time, " stop_count: ", cls.stop_count)
 
     @classmethod
     def get_total_time(cls):
-        if cls.start_time is None:
-            return cls.total_time
-        else:
-            return cls.total_time + (time.time() - cls.start_time)
+        with cls.lock:                
+            if cls.is_running:   
+                return cls.total_time + (time.time() - cls.start_time)
+            
+            else:
+                return cls.total_time
 
 
 class IOToggleClient(Node):
@@ -70,39 +96,29 @@ def toggle_gripper(trigger, simulation):
 
 
 def toggle_conveyor(trigger, simulation):
-    if simulation:
-        rclpy.init()
-
     io_toggle_client = IOToggleClient()
     if trigger == 0:
         TimeKeeper.stop()
-        if simulation:
-            print("Simulation mode is on. The conveyor will not move.")
-            print(f"Total time: {TimeKeeper.get_total_time()} seconds")
-
-        else:
+        if not simulation:
             io_toggle_client.send_request([(4, 0.0), (5, 0.0)])
-            print(f"Total time: {TimeKeeper.get_total_time()} seconds")
 
     elif trigger == 1:
             TimeKeeper.start()
-            print("What I seee", simulation)
-            if simulation:
-                print("Simulation mode is on. The conveyor will not move.")
-
-            else:
+            if not simulation:
                 io_toggle_client.send_request([(4, 1.0), (5, 1.0)])
 
     else:
         raise RuntimeError("Invalid trigger value. Please provide 0 to turn off the conveyor and 1 to turn on the conveyor.")
 
     io_toggle_client.destroy_node()
-    if simulation:
-        rclpy.shutdown()
     
 if __name__ == '__main__':
+    rclpy.init()
+
     toggle_gripper(1, simulation=True)  # Call toggle_gripper with trigger = 1 to open the gripper
     toggle_conveyor(trigger=1, simulation= True)  # Call toggle_conveyor with trigger = 1 to turn on the conveyor for 5 seconds
     time.sleep(10)  # Sleep for 5 seconds
     toggle_conveyor(trigger=0, simulation= True)  # Call toggle_conveyor with trigger = 0 to turn off the conveyor
     print("This is the total time stamp",TimeKeeper.total_time)  # Print total_time
+
+    rclpy.shutdown()

@@ -32,9 +32,6 @@ def move_to_place_mix(standalone, sim):
         tcp_y = Transforms.tcp_offset_y
         tcp_z = Transforms.tcp_offset_z
 
-        if standalone:
-            rclpy.init()
-
         # Create node
         if sim:
             node = Node("moveit2_place_cotton", namespace="arm1")
@@ -201,10 +198,7 @@ def move_to_place_mix(standalone, sim):
         except Exception as e:
             print(f"An error occurred: {e}")
         finally:
-            if standalone:
-                rclpy.shutdown()
-                print("Stand alone")
-
+            pass
         node.get_logger().info(f'Movement completed')
 
 
@@ -237,4 +231,6 @@ def add_ground_plane(node):
 
 
 if __name__ == "__main__":
+    rclpy.init()
     move_to_place_mix(standalone=True, sim=True)
+    rclpy.shutdown()

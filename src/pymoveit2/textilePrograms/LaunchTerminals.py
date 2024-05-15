@@ -15,7 +15,7 @@ def run_in_terminal(cmds, terminal='gnome-terminal', title=None):
 terminal_moveit = [
     'cd',
     'source /opt/ros/humble/setup.bash',
-    'ros2 launch ur_moveit_config ur_moveit.launch.py ur_type:=ur5 launch_rviz:=true use_mock_hardware:=false',
+    'ros2 launch ur_moveit_config ur_moveit.launch.py ur_type:=ur5 launch_rviz:=false use_mock_hardware:=false',
 ]
 
 terminal_robot = [
