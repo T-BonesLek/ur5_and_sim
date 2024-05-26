@@ -4,6 +4,12 @@ A Robot-Cell with perception a system powered by Artificial Intelligence,
 Machine Learning, and ROS2 to Classify and Sort Textiles on a Moving
 Conveyorbelt
 
+This project is based on the repositories mentioned in acknowledgement, but there has been several changes to simulation URDF with custom work area and gripper. In addition my own scripts are developed such that this multi module facility works in harmony.
+
+# My work:
+URDF -> src/multi_robot_arm/urdf/ur/ur5
+Project programs -> src/pymoveit2/textilePrograms
+
 # Media
 The system in action -> https://youtu.be/An8Itexof-E
 ![Alt text](systemOverview.jpg)
