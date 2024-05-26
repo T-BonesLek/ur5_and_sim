@@ -1,4 +1,4 @@
-# My master thesis: "Ros2 Based Autonomous Textile Sorting-Facility"
+# My master thesis: "Ros2 Based Autonomous Textile Sorting Facility"
 
 A Robot-Cell with perception a system powered by Artificial Intelligence,
 Machine Learning, and ROS2 to Classify and Sort Textiles on a Moving
