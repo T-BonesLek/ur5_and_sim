@@ -45,8 +45,10 @@ pymoveit2 -> https://github.com/AndrejOrsula/pymoveit2
 multi_robot_arm -> https://github.com/arshadlab/multi_robot_arm/tree/master
 
 
+# Video
+[![Everything Is AWESOME](YoutubeTN.png)](https://youtu.be/An8Itexof-E)
+
 # Media
-The system in action -> https://youtu.be/An8Itexof-E
 ![Alt text](systemOverview.jpg)
 ![Alt text](PicAlongConveyor.jpg)
 ![Alt text](posesForSorting.jpg)
