@@ -16,6 +16,7 @@ The system in action -> https://youtu.be/An8Itexof-E
 ![Alt text](systemOverview.jpg)
 ![Alt text](PicAlongConveyor.jpg)
 ![Alt text](posesForSorting.jpg)
+![Alt text](YOLODetectedLight.png)
 
 
 ## Setup
