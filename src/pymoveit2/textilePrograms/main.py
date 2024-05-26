@@ -28,7 +28,7 @@ logging.basicConfig(level=logging.ERROR)
 def report_time_thread():
     while True:
         time.sleep(1)
-        print(f"### report_time_thread:: Time elapsed: {TimeKeeper.get_total_time()} seconds")
+        print(f"Total Time elapsed: {TimeKeeper.get_total_time()} seconds")
 
 class MySubscriber(Node):    
     

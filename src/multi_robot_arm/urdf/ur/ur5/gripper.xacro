@@ -7,7 +7,6 @@
         <visual>
             <geometry>
                 <mesh filename="package://ur5/visual/GripperAssy.dae" scale="0.001 0.001 0.001"/>
-                <!-- <box size="0.1 0.1 0.1"/> -->
             </geometry>
             <material name="gripper_material">
                 <color rgba="0.5 0.5 0.5 1"/>
@@ -16,7 +15,6 @@
         <collision>
             <geometry>
                 <mesh filename="package://ur5/collision/GripperAssy.stl" scale="0.001 0.001 0.001"/>
-                <!-- <box size="0.1 0.1 0.1"/> -->
             </geometry>
         </collision>
     </link>

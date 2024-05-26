@@ -47,9 +47,9 @@ def move_to_pose(pickPose_xy, sim):
         # Declare parameters for position and orientation
         node.declare_parameter("position1", [tcp_x -0.5, tcp_y + 0.0, tcp_z + 0.1])
         node.declare_parameter("position2", [robot_coords[0], robot_coords[1] - 0.1, robot_coords[2]])
-        robot_coords_push = [robot_coords[0], robot_coords[1] + 0.3, robot_coords[2]]
+        robot_coords_push = [robot_coords[0], robot_coords[1] + 0.2, robot_coords[2]]
         node.declare_parameter("position3", robot_coords_push)
-        node.declare_parameter("position4", [robot_coords[0], robot_coords[1] + 0.3, robot_coords[2] + 0.4])
+        node.declare_parameter("position4", [robot_coords[0], robot_coords[1] + 0.2, robot_coords[2] + 0.4])
 
         # Declare parameters for Euler angles (roll, pitch, yaw)
         node.declare_parameter("euler_xyz1", [math.radians(0), math.radians(0), math.radians(0)])  # roll, pitch, yaw for position1
@@ -214,5 +214,5 @@ def add_ground_plane(node):
 
 if __name__ == "__main__":
     rclpy.init()
-    move_to_pose([0.2, 0.17], sim=False)
+    move_to_pose([0.2, 0.17], sim=True)
     rclpy.shutdown()
