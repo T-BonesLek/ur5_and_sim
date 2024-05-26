@@ -11,13 +11,6 @@ URDF -> src/multi_robot_arm/urdf/ur/ur5
 
 Project programs -> src/pymoveit2/textilePrograms
 
-# Media
-The system in action -> https://youtu.be/An8Itexof-E
-![Alt text](systemOverview.jpg)
-![Alt text](PicAlongConveyor.jpg)
-![Alt text](posesForSorting.jpg)
-![Alt text](YOLODetectedLight.png)
-
 
 ## Setup
 The pproject is verified with ROS2 Humble.
@@ -50,3 +43,11 @@ Remember to click play on the pendant when the robot driver node is opened!
 pymoveit2 -> https://github.com/AndrejOrsula/pymoveit2
 
 multi_robot_arm -> https://github.com/arshadlab/multi_robot_arm/tree/master
+
+
+# Media
+The system in action -> https://youtu.be/An8Itexof-E
+![Alt text](systemOverview.jpg)
+![Alt text](PicAlongConveyor.jpg)
+![Alt text](posesForSorting.jpg)
+![Alt text](YOLODetectedLight.png)
