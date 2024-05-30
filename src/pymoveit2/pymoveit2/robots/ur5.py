@@ -19,4 +19,4 @@ def base_link_name() -> str:
 
 
 def end_effector_name() -> str:
-    return "tool0"
+    return "tool0" #look at the comment in ur5_sim.py, maybe the TCP is not adde correctly for IK, but works for now.
