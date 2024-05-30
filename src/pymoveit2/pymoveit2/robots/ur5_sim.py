@@ -19,4 +19,4 @@ def base_link_name(prefix: str = "") -> str:
 
 
 def end_effector_name(prefix: str = "") -> str:
-    return prefix + "wrist_3_link"
+    return prefix + "wrist_3_link" #Change to gripper or tool0 if needed I think if this is added, the gripper will included to the IK. This project works as it is now, but is something to think about.
